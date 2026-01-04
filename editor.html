@@ -219,7 +219,7 @@
                 const elementToCapture = preview.querySelector('.katex') || preview;
 
                 html2canvas(elementToCapture, {
-                    backgroundColor: 'white',
+                    backgroundColor: null,
                     scale: 2 // Improve resolution
                 }).then(canvas => {
                     const link = document.createElement('a');
