@@ -9,8 +9,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
     <!-- KaTeX JS -->
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
-    <!-- KaTeX Auto-render Extension -->
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
     
     <style>
         body {
@@ -45,6 +43,8 @@
         .preview-pane {
             background-color: #fff;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
 
         textarea#latex-input {
@@ -75,12 +75,12 @@
             padding: 1rem;
             border: 1px solid #eee;
             border-radius: 4px;
-            min-height: 200px;
-            height: 100%;
-            white-space: pre-wrap; /* Preserve whitespace and newlines */
-            font-family: 'Times New Roman', Times, serif;
-            font-size: 1.1rem;
-            line-height: 1.6;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem; /* Make the formula larger */
+            overflow: auto;
         }
     </style>
 </head>
@@ -99,21 +99,7 @@
     <div class="editor-container">
         <div class="input-pane">
             <h2>LaTeX Input</h2>
-            <textarea id="latex-input" placeholder="Type your LaTeX code here...">
-Welcome to the KaTeX Editor!
-
-You can write text mixed with math.
-
-Inline math: $E = mc^2$ or \( a^2 + b^2 = c^2 \)
-
-Display math:
-$$ \frac{3}{2} $$
-
-Or using brackets:
-\[ \int_{0}^{\infty} x^2 dx \]
-
-Try typing below!
-            </textarea>
+            <textarea id="latex-input" placeholder="Type your LaTeX formula here...">\frac{3}{2}</textarea>
         </div>
         <div class="preview-pane">
             <h2>Preview</h2>
@@ -126,37 +112,36 @@ Try typing below!
             const input = document.getElementById('latex-input');
             const preview = document.getElementById('preview-content');
 
-            const renderOptions = {
-                delimiters: [
-                    {left: '$$', right: '$$', display: true},
-                    {left: '\\[', right: '\\]', display: true},
-                    {left: '$', right: '$', display: false},
-                    {left: '\\(', right: '\\)', display: false}
-                ],
-                throwOnError: false
-            };
-
             function updatePreview() {
-                // Set text content
-                preview.textContent = input.value;
+                const latex = input.value;
                 
-                // Render math using KaTeX auto-render extension
-                if (window.renderMathInElement) {
-                    renderMathInElement(preview, renderOptions);
+                try {
+                    katex.render(latex, preview, {
+                        displayMode: true,
+                        throwOnError: false,
+                        errorColor: '#cc0000'
+                    });
+                } catch (e) {
+                    preview.textContent = e.message;
                 }
             }
 
             // Listen for input changes
             input.addEventListener('input', updatePreview);
 
-            // Initial render - wait a bit for scripts to load if needed, 
-            // but since they are deferred, they should be ready after DOMContentLoaded usually.
-            // However, sometimes the script execution might be slightly delayed.
-            // We'll try immediately.
-            updatePreview();
-            
-            // Also retry after a short delay just in case the external script loads late
-            setTimeout(updatePreview, 500);
+            // Initial render
+            // We need to wait for KaTeX to load. Since it's deferred, we can check or retry.
+            if (window.katex) {
+                updatePreview();
+            } else {
+                // Poll for katex if not immediately available
+                const checkKatex = setInterval(() => {
+                    if (window.katex) {
+                        clearInterval(checkKatex);
+                        updatePreview();
+                    }
+                }, 100);
+            }
         });
     </script>
 </body>
