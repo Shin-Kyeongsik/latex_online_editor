@@ -215,7 +215,13 @@
             downloadConfirmBtn.addEventListener('click', (e) => {
                 e.preventDefault(); // Prevent dialog close immediately
                 
-                html2canvas(preview).then(canvas => {
+                // Find the actual KaTeX element inside the preview container to capture only the formula
+                const elementToCapture = preview.querySelector('.katex') || preview;
+
+                html2canvas(elementToCapture, {
+                    backgroundColor: 'white',
+                    scale: 2 // Improve resolution
+                }).then(canvas => {
                     const link = document.createElement('a');
                     link.download = 'latex_formula.png';
                     link.href = canvas.toDataURL('image/png');
