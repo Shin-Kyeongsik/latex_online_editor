@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LaTeX Editor - Write Online</title>
     <link rel="stylesheet" href="style.css">
+    <!-- KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+    <!-- KaTeX JS -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+    <!-- KaTeX Auto-render Extension -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    
     <style>
         body {
             display: flex;
@@ -20,7 +27,7 @@
         .editor-container {
             display: flex;
             flex: 1;
-            height: calc(100vh - 80px); /* Adjust based on header height */
+            height: calc(100vh - 80px);
         }
 
         .input-pane, .preview-pane {
@@ -70,11 +77,12 @@
             border-radius: 4px;
             min-height: 200px;
             height: 100%;
+            white-space: pre-wrap; /* Preserve whitespace and newlines */
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 1.1rem;
+            line-height: 1.6;
         }
     </style>
-    <!-- MathJax for LaTeX rendering -->
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
     <header>
@@ -92,15 +100,19 @@
         <div class="input-pane">
             <h2>LaTeX Input</h2>
             <textarea id="latex-input" placeholder="Type your LaTeX code here...">
-\documentclass{article}
-\begin{document}
+Welcome to the KaTeX Editor!
 
-Hello, World!
+You can write text mixed with math.
 
-Here is an equation:
-\[ E = mc^2 \]
+Inline math: $E = mc^2$ or \( a^2 + b^2 = c^2 \)
 
-\end{document}
+Display math:
+$$ \frac{3}{2} $$
+
+Or using brackets:
+\[ \int_{0}^{\infty} x^2 dx \]
+
+Try typing below!
             </textarea>
         </div>
         <div class="preview-pane">
@@ -110,37 +122,42 @@ Here is an equation:
     </div>
 
     <script>
-        const input = document.getElementById('latex-input');
-        const preview = document.getElementById('preview-content');
+        document.addEventListener("DOMContentLoaded", function() {
+            const input = document.getElementById('latex-input');
+            const preview = document.getElementById('preview-content');
 
-        // Function to update preview
-        function updatePreview() {
-            const text = input.value;
-            
-            // Simple conversion for demonstration. 
-            // In a real app, you might parse the full LaTeX document structure or send to a backend.
-            // Here we just render the math and text content roughly for MathJax.
-            
-            // For this simple client-side demo, we'll just put the text in the div 
-            // and ask MathJax to typeset it.
-            // Note: This is a very basic approximation. Full LaTeX compilation usually requires a server.
-            
-            // Replace newlines with <br> for basic text formatting in HTML
-            let htmlContent = text.replace(/\n/g, '<br>');
-            
-            preview.innerHTML = htmlContent;
+            const renderOptions = {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '\\[', right: '\\]', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false}
+                ],
+                throwOnError: false
+            };
 
-            // Ask MathJax to typeset the preview element
-            if (window.MathJax) {
-                MathJax.typesetPromise([preview]).catch((err) => console.log(err));
+            function updatePreview() {
+                // Set text content
+                preview.textContent = input.value;
+                
+                // Render math using KaTeX auto-render extension
+                if (window.renderMathInElement) {
+                    renderMathInElement(preview, renderOptions);
+                }
             }
-        }
 
-        // Listen for input changes
-        input.addEventListener('input', updatePreview);
+            // Listen for input changes
+            input.addEventListener('input', updatePreview);
 
-        // Initial render
-        window.addEventListener('load', updatePreview);
+            // Initial render - wait a bit for scripts to load if needed, 
+            // but since they are deferred, they should be ready after DOMContentLoaded usually.
+            // However, sometimes the script execution might be slightly delayed.
+            // We'll try immediately.
+            updatePreview();
+            
+            // Also retry after a short delay just in case the external script loads late
+            setTimeout(updatePreview, 500);
+        });
     </script>
 </body>
 </html>
